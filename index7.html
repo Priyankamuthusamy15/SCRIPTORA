@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prescription Drug Extractor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        function showSpinner() {
+            document.getElementById('spinner').classList.remove('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+        <h1 class="text-3xl font-bold text-blue-800 mb-6">💊 Prescription Drug Extractor</h1>
+
+        <!-- Upload form -->
+        <form action="/upload" method="post" enctype="multipart/form-data" class="mb-6" onsubmit="showSpinner()">
+            <input type="file" name="file" required class="border p-2 rounded">
+            <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">
+                Upload & Extract
+            </button>
+        </form>
+
+        <!-- Spinner -->
+        <div id="spinner" class="hidden text-center mb-4">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-blue-500 h-10 w-10 mx-auto animate-spin"></div>
+            <p class="text-blue-700 mt-2">Processing...</p>
+        </div>
+
+        <!-- Export buttons -->
+        {% if drugs %}
+        <div class="mb-6 flex space-x-4">
+            <a href="/download/pdf" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Export PDF</a>
+            <a href="/download/csv" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Export CSV</a>
+        </div>
+        {% endif %}
+
+        <!-- OCR Text -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">📝 Extracted Text:</h2>
+            {% if extracted_text %}
+                <pre class="bg-gray-50 p-4 rounded border text-sm">{{ extracted_text }}</pre>
+            {% else %}
+                <p class="text-red-600">❌ No text detected.</p>
+            {% endif %}
+        </div>
+
+        <!-- Identified Drugs -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">🔍 Identified Drugs:</h2>
+            {% if drugs %}
+                <ul class="list-disc pl-6 text-green-700">
+                    {% for drug in drugs %}
+                        <li>{{ drug.name }} (Confidence: {{ drug.confidence }}%)</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-red-600">❌ No drugs confidently identified.</p>
+            {% endif %}
+        </div>
+
+        <!-- Drug Details -->
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 Drug Details:</h2>
+            {% if drugs %}
+                {% for drug in drugs %}
+                    <div class="bg-gray-50 p-4 rounded border mb-4 shadow-sm">
+                        <h3 class="text-lg font-bold text-blue-700 mb-2">{{ drug.name }}</h3>
+                        <ul class="text-sm space-y-1">
+                            <li><strong>RxCUI:</strong> {{ drug.rxnorm_data.rxcui or 'N/A' }}</li>
+                            <li><strong>Synonym:</strong> {{ drug.rxnorm_data.synonym or 'N/A' }}</li>
+                            <li><strong>Brand Name:</strong> {{ drug.dailymed_data.brand_name or 'N/A' }}</li>
+                            <li><strong>Manufacturer:</strong> {{ drug.dailymed_data.manufacturer or 'N/A' }}</li>
+                            <li><strong>Dosage Form:</strong> {{ drug.dailymed_data.dosage_form or 'N/A' }}</li>
+                            <li><strong>Route:</strong> {{ drug.dailymed_data.route or 'N/A' }}</li>
+                            <li><strong>Side Effects:</strong> {{ drug.dailymed_data.side_effects or 'N/A' }}</li>
+                            <li><strong>Warnings:</strong> {{ drug.dailymed_data.warnings or 'N/A' }}</li>
+                        </ul>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-gray-600">No detailed drug info available.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
